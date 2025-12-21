@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: booking_service_user
+      POSTGRES_PASSWORD: booking_service_pass
+      POSTGRES_DB: booking_service_db
+    ports:
+      - "5432:5432"
+    networks:
+      - app-net
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U booking_service_user -d booking_service_db -h localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  event-service:
+    build: ./event-service
+    container_name: event-service
+    ports:
+      - "8081:8081"
+    networks:
+      - app-net
+
+  booking-service:
+    build: ./booking-service
+    container_name: booking-service
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/booking_service_db
+      SPRING_DATASOURCE_USERNAME: booking_service_user
+      SPRING_DATASOURCE_PASSWORD: booking_service_pass
+
+      EVENT_SERVICE_URL: http://event-service:8081
+      PAYMENT_SERVICE_URL: http://payment-service:8083
+    depends_on:
+      postgres:
+        condition: service_healthy
+      event-service:
+        condition: service_started
+    networks:
+      - app-net
+
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    ports:
+      - "8083:8083"
+    environment:
+      BOOKING_SERVICE_URL: http://booking-service:8082
+    depends_on:
+      booking-service:
+        condition: service_started
+    networks:
+      - app-net
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EVENT_SERVICE_URL: http://event-service:8081
+      BOOKING_SERVICE_URL: http://booking-service:8082
+    depends_on:
+      event-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  pgdata:
