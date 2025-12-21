@@ -81,7 +81,6 @@ Services communicate using synchronous REST APIs over HTTP and exchange data in 
 - Java 17
 - Spring Boot
 - Spring Cloud Gateway
-- Resilience4j
 - REST APIs (HTTP and JSON)
 - Docker and Docker Compose
 - PostgreSQL
