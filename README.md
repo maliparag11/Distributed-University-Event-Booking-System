@@ -134,7 +134,7 @@ Services communicate using synchronous REST APIs over HTTP and exchange data in 
 ### 25202112 – Geet Prashant Bhute
 - Booking Service design and implementation
 - Service coordination and resilience mechanisms
-- Failure handling and recovery testing
+- Failure handling and recovery tests
 
 All group members contributed to architectural design, Docker setup, testing, and report preparation.
 
